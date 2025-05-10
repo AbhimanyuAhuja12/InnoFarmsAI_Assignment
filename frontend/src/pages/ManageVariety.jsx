@@ -19,6 +19,7 @@ import {
   Tractor,
   SproutIcon as SeedingIcon,
   Thermometer,
+  AlertCircle,
 } from "lucide-react"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
@@ -37,6 +38,7 @@ export default function ManageVariety() {
 
   const [loading, setLoading] = useState(isEditing)
   const [submitting, setSubmitting] = useState(false)
+  const [apiError, setApiError] = useState(null)
   const [formData, setFormData] = useState({
     cropName: "",
     varietyName: "",
@@ -103,6 +105,7 @@ export default function ManageVariety() {
   const fetchVariety = async () => {
     try {
       setLoading(true)
+      setApiError(null)
       const response = await axios.get(`http://localhost:5000/api/varieties/${id}`)
       const variety = response.data
 
@@ -115,12 +118,12 @@ export default function ManageVariety() {
         healthRating: variety.healthRating,
       })
     } catch (error) {
+      setApiError("Failed to fetch variety details. Please try again.")
       toast({
         variant: "destructive",
         title: "Error fetching variety",
         description: error.message || "Something went wrong",
       })
-      navigate("/")
     } finally {
       setLoading(false)
     }
@@ -198,6 +201,7 @@ export default function ManageVariety() {
 
     try {
       setSubmitting(true)
+      setApiError(null)
 
       const varietyData = {
         ...formData,
@@ -223,6 +227,9 @@ export default function ManageVariety() {
 
       navigate("/")
     } catch (error) {
+      setApiError(
+        isEditing ? "Failed to update variety. Please try again." : "Failed to add variety. Please try again.",
+      )
       toast({
         variant: "destructive",
         title: isEditing ? "Error updating variety" : "Error adding variety",
@@ -235,11 +242,29 @@ export default function ManageVariety() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex justify-center items-center p-4">
+      <div className="min-h-screen flex justify-center items-center p-4" aria-live="polite" aria-busy="true">
         <div className="bg-white/80 dark:bg-gray-800/80 rounded-xl border shadow-md p-8 backdrop-blur-sm text-center">
           <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
           <h3 className="text-xl font-medium">Loading variety data...</h3>
           <p className="text-muted-foreground mt-2">Retrieving your crop information</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (apiError && !submitting) {
+    return (
+      <div className="min-h-screen flex justify-center items-center p-4" aria-live="polite">
+        <div className="bg-white/80 dark:bg-gray-800/80 rounded-xl border shadow-md p-8 backdrop-blur-sm text-center max-w-md">
+          <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+          <h3 className="text-xl font-medium">Error</h3>
+          <p className="text-muted-foreground mt-2 mb-4">{apiError}</p>
+          <div className="flex gap-3 justify-center">
+            <Button variant="outline" onClick={() => navigate("/")}>
+              Return to Dashboard
+            </Button>
+            {isEditing && <Button onClick={fetchVariety}>Try Again</Button>}
+          </div>
         </div>
       </div>
     )
@@ -250,7 +275,11 @@ export default function ManageVariety() {
       <div className="page-header">
         <div className="container mx-auto">
           <div className="flex justify-between items-center">
-            <Link to="/" className="inline-flex items-center text-sm font-medium hover:text-primary transition-colors">
+            <Link
+              to="/"
+              className="inline-flex items-center text-sm font-medium hover:text-primary transition-colors"
+              aria-label="Back to Dashboard"
+            >
               <ArrowLeft className="mr-1 h-4 w-4" /> Back to Dashboard
             </Link>
             <ModeToggle />
@@ -292,18 +321,24 @@ export default function ManageVariety() {
             </CardDescription>
           </CardHeader>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} aria-label={isEditing ? "Edit variety form" : "Add variety form"}>
             <CardContent className="space-y-8 p-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="cropName" className="text-base">
                     Crop Name
                   </Label>
-                  <Select value={formData.cropName} onValueChange={(value) => handleSelectChange("cropName", value)}>
+                  <Select
+                    value={formData.cropName}
+                    onValueChange={(value) => handleSelectChange("cropName", value)}
+                    name="cropName"
+                    aria-invalid={!!errors.cropName}
+                    aria-describedby={errors.cropName ? "cropName-error" : undefined}
+                  >
                     <SelectTrigger id="cropName" className={`${errors.cropName ? "border-destructive" : ""} h-12`}>
                       <SelectValue placeholder="Select crop" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent position="item-aligned">
                       {cropOptions.map((crop) => (
                         <SelectItem key={crop} value={crop} className="flex items-center">
                           <div className="flex items-center">
@@ -314,7 +349,11 @@ export default function ManageVariety() {
                       ))}
                     </SelectContent>
                   </Select>
-                  {errors.cropName && <p className="text-sm text-destructive">{errors.cropName}</p>}
+                  {errors.cropName && (
+                    <p className="text-sm text-destructive" id="cropName-error" aria-live="polite">
+                      {errors.cropName}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -327,8 +366,14 @@ export default function ManageVariety() {
                     value={formData.varietyName}
                     onChange={handleChange}
                     className={`${errors.varietyName ? "border-destructive" : ""} h-12`}
+                    aria-invalid={!!errors.varietyName}
+                    aria-describedby={errors.varietyName ? "varietyName-error" : undefined}
                   />
-                  {errors.varietyName && <p className="text-sm text-destructive">{errors.varietyName}</p>}
+                  {errors.varietyName && (
+                    <p className="text-sm text-destructive" id="varietyName-error" aria-live="polite">
+                      {errors.varietyName}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -352,8 +397,14 @@ export default function ManageVariety() {
                       value={formData.expectedYield}
                       onChange={handleChange}
                       className={`${errors.expectedYield ? "border-destructive" : ""} h-12`}
+                      aria-invalid={!!errors.expectedYield}
+                      aria-describedby={errors.expectedYield ? "expectedYield-error" : undefined}
                     />
-                    {errors.expectedYield && <p className="text-sm text-destructive">{errors.expectedYield}</p>}
+                    {errors.expectedYield && (
+                      <p className="text-sm text-destructive" id="expectedYield-error" aria-live="polite">
+                        {errors.expectedYield}
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -366,16 +417,17 @@ export default function ManageVariety() {
                         value={formData.healthRating.toString()}
                         onValueChange={(value) => handleSelectChange("healthRating", value)}
                         className="flex space-x-4"
+                        aria-label="Health rating from 1 to 5 stars"
                       >
                         {[1, 2, 3, 4, 5].map((rating) => (
                           <div key={rating} className="flex items-center space-x-1">
-                            <RadioGroupItem value={rating.toString()} id={`rating-${rating}`} />
-                            <Label htmlFor={`rating-${rating}`} className="flex items-center">
+                            <RadioGroupItem value={rating.toString()} id={`rating-${rating}`} className="sr-only" />
+                            <Label htmlFor={`rating-${rating}`} className="flex items-center cursor-pointer">
                               <Star
-                                className={`h-5 w-5 ${
+                                className={`h-5 w-5 transition-all ${
                                   rating <= formData.healthRating
-                                    ? "fill-yellow-400 text-yellow-400"
-                                    : "text-muted-foreground"
+                                    ? "fill-yellow-400 text-yellow-400 scale-110"
+                                    : "text-muted-foreground hover:text-yellow-400 hover:scale-105"
                                 }`}
                               />
                             </Label>
@@ -405,8 +457,14 @@ export default function ManageVariety() {
                       value={formData.sowingDate}
                       onChange={handleChange}
                       className={`${errors.sowingDate ? "border-destructive" : ""} h-12`}
+                      aria-invalid={!!errors.sowingDate}
+                      aria-describedby={errors.sowingDate ? "sowingDate-error" : undefined}
                     />
-                    {errors.sowingDate && <p className="text-sm text-destructive">{errors.sowingDate}</p>}
+                    {errors.sowingDate && (
+                      <p className="text-sm text-destructive" id="sowingDate-error" aria-live="polite">
+                        {errors.sowingDate}
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -421,9 +479,13 @@ export default function ManageVariety() {
                       value={formData.expectedHarvestDays}
                       onChange={handleChange}
                       className={`${errors.expectedHarvestDays ? "border-destructive" : ""} h-12`}
+                      aria-invalid={!!errors.expectedHarvestDays}
+                      aria-describedby={errors.expectedHarvestDays ? "expectedHarvestDays-error" : undefined}
                     />
                     {errors.expectedHarvestDays && (
-                      <p className="text-sm text-destructive">{errors.expectedHarvestDays}</p>
+                      <p className="text-sm text-destructive" id="expectedHarvestDays-error" aria-live="polite">
+                        {errors.expectedHarvestDays}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -453,13 +515,21 @@ export default function ManageVariety() {
             </CardContent>
 
             <CardFooter className="flex flex-col sm:flex-row gap-3 sm:justify-between p-6 bg-muted/30 border-t">
-              <Button variant="outline" type="button" onClick={() => navigate("/")} className="w-full sm:w-auto h-12">
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => navigate("/")}
+                className="w-full sm:w-auto h-12"
+                aria-label="Cancel and return to dashboard"
+              >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={submitting}
                 className="w-full sm:w-auto h-12 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary shadow-lg"
+                aria-label={isEditing ? "Update variety" : "Plant new variety"}
+                aria-busy={submitting}
               >
                 {submitting && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
                 {isEditing ? "Update" : "Plant"} Variety

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Link } from "react-router-dom"
 import axios from "axios"
 import {
@@ -17,6 +17,9 @@ import {
   CloudRain,
   Tractor,
   SunDim,
+  Copy,
+  Undo2,
+  AlertCircle,
 } from "lucide-react"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
@@ -37,6 +40,7 @@ import { DeleteVarietyDialog } from "../components/DeleteVarietyDialog"
 import { ModeToggle } from "../components/mode-toggle"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs"
 import { Separator } from "../components/ui/separator"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../components/ui/tooltip"
 
 export default function Dashboard() {
   const [varieties, setVarieties] = useState([])
@@ -48,12 +52,27 @@ export default function Dashboard() {
   const [sortOption, setSortOption] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [viewMode, setViewMode] = useState("grid")
+  const [deletedVariety, setDeletedVariety] = useState(null)
+  const [apiError, setApiError] = useState(null)
   const { toast } = useToast()
+  const searchInputRef = useRef(null)
 
-  const itemsPerPage = 8
+  // Increase to 10 varieties per page as requested
+  const itemsPerPage = 10
 
   useEffect(() => {
     fetchVarieties()
+
+    // Add keyboard shortcut for search
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "f") {
+        e.preventDefault()
+        searchInputRef.current?.focus()
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
   }, [])
 
   useEffect(() => {
@@ -63,10 +82,12 @@ export default function Dashboard() {
   const fetchVarieties = async () => {
     try {
       setLoading(true)
+      setApiError(null)
       const response = await axios.get("http://localhost:5000/api/varieties")
       setVarieties(response.data)
       setFilteredVarieties(response.data)
     } catch (error) {
+      setApiError("Failed to fetch varieties. Please try again.")
       toast({
         variant: "destructive",
         title: "Error fetching varieties",
@@ -90,7 +111,7 @@ export default function Dashboard() {
     }
 
     // Health rating filter
-    if (healthFilter) {
+    if (healthFilter && healthFilter !== "any") {
       result = result.filter((variety) => variety.healthRating === Number.parseInt(healthFilter))
     }
 
@@ -125,15 +146,29 @@ export default function Dashboard() {
 
   const handleDelete = async (id) => {
     try {
+      // Store the variety before deleting for potential undo
+      const varietyToDelete = varieties.find((v) => v.id === id)
+
       // Optimistic update
       const updatedVarieties = varieties.filter((variety) => variety.id !== id)
       setVarieties(updatedVarieties)
 
       await axios.delete(`http://localhost:5000/api/varieties/${id}`)
 
+      // Store deleted variety for undo functionality
+      setDeletedVariety(varietyToDelete)
+
       toast({
         title: "Variety deleted",
-        description: "The crop variety has been successfully removed.",
+        description: (
+          <div className="flex items-center justify-between">
+            <span>The crop variety has been removed</span>
+            <Button variant="outline" size="sm" onClick={() => handleUndoDelete(varietyToDelete)} className="ml-2">
+              <Undo2 className="h-4 w-4 mr-1" /> Undo
+            </Button>
+          </div>
+        ),
+        duration: 5000,
       })
     } catch (error) {
       // Revert optimistic update
@@ -145,6 +180,59 @@ export default function Dashboard() {
         description: error.message || "Something went wrong",
       })
     }
+  }
+
+  const handleUndoDelete = async (variety) => {
+    try {
+      setLoading(true)
+      await axios.post("http://localhost:5000/api/varieties", variety)
+
+      // Refresh varieties
+      await fetchVarieties()
+
+      toast({
+        title: "Variety restored",
+        description: `${variety.varietyName} has been restored successfully.`,
+      })
+
+      setDeletedVariety(null)
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error restoring variety",
+        description: error.message || "Something went wrong",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const copyVarietyInfo = (variety) => {
+    const info = `
+Crop: ${variety.cropName}
+Variety: ${variety.varietyName}
+Expected Yield: ${variety.expectedYield} kg
+Health Rating: ${variety.healthRating}/5
+Sowing Date: ${new Date(variety.sowingDate).toLocaleDateString()}
+Estimated Harvest Date: ${new Date(variety.estimatedHarvestDate).toLocaleDateString()}
+Days to Harvest: ${variety.expectedHarvestDays}
+    `.trim()
+
+    navigator.clipboard.writeText(info).then(
+      () => {
+        toast({
+          title: "Copied to clipboard",
+          description: "Variety information has been copied to clipboard",
+        })
+      },
+      () => {
+        toast({
+          variant: "destructive",
+          title: "Failed to copy",
+          description: "Could not copy information to clipboard",
+        })
+      },
+    )
   }
 
   // Pagination
@@ -343,26 +431,34 @@ export default function Dashboard() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
-              <label className="text-sm font-medium mb-1 block">Search</label>
+              <label className="text-sm font-medium mb-1 block" htmlFor="search-input">
+                Search
+              </label>
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
+                  id="search-input"
+                  ref={searchInputRef}
                   type="text"
                   placeholder="Search crop or variety..."
                   className="pl-8"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  aria-label="Search crops or varieties"
                 />
               </div>
+              <p className="text-xs text-muted-foreground mt-1">Press Ctrl+F to focus search</p>
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-1 block">Health Rating</label>
-              <Select value={healthFilter} onValueChange={setHealthFilter}>
+              <label className="text-sm font-medium mb-1 block" id="health-rating-label">
+                Health Rating
+              </label>
+              <Select value={healthFilter} onValueChange={setHealthFilter} aria-labelledby="health-rating-label">
                 <SelectTrigger>
                   <SelectValue placeholder="Any rating" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent position="item-aligned">
                   <SelectItem value="any">Any rating</SelectItem>
                   <SelectItem value="1">1 Star</SelectItem>
                   <SelectItem value="2">2 Stars</SelectItem>
@@ -374,7 +470,9 @@ export default function Dashboard() {
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-1 block">Expected Yield</label>
+              <label className="text-sm font-medium mb-1 block" id="yield-range-label">
+                Expected Yield
+              </label>
               <Slider
                 defaultValue={[0, 100]}
                 max={100}
@@ -382,6 +480,7 @@ export default function Dashboard() {
                 value={yieldRange}
                 onValueChange={setYieldRange}
                 className="py-4"
+                aria-labelledby="yield-range-label"
               />
               <div className="flex justify-between text-xs text-muted-foreground">
                 <span>{yieldRange[0]} kg</span>
@@ -390,12 +489,14 @@ export default function Dashboard() {
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-1 block">Sort By</label>
-              <Select value={sortOption} onValueChange={setSortOption}>
+              <label className="text-sm font-medium mb-1 block" id="sort-by-label">
+                Sort By
+              </label>
+              <Select value={sortOption} onValueChange={setSortOption} aria-labelledby="sort-by-label">
                 <SelectTrigger>
                   <SelectValue placeholder="Sort by..." />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent position="item-aligned">
                   <SelectItem value="default">Default</SelectItem>
                   <SelectItem value="yield-asc">Yield (Low to High)</SelectItem>
                   <SelectItem value="yield-desc">Yield (High to Low)</SelectItem>
@@ -408,10 +509,26 @@ export default function Dashboard() {
         </div>
 
         {loading ? (
-          <div className="flex flex-col justify-center items-center h-64 bg-white/50 dark:bg-gray-800/50 rounded-xl border shadow-sm p-8 backdrop-blur-sm">
+          <div
+            className="flex flex-col justify-center items-center h-64 bg-white/50 dark:bg-gray-800/50 rounded-xl border shadow-sm p-8 backdrop-blur-sm"
+            aria-live="polite"
+            aria-busy="true"
+          >
             <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
             <span className="text-lg">Loading your crop varieties...</span>
             <p className="text-muted-foreground mt-2">Preparing your agricultural data</p>
+          </div>
+        ) : apiError ? (
+          <div
+            className="flex flex-col justify-center items-center h-64 bg-white/50 dark:bg-gray-800/50 rounded-xl border shadow-sm p-8 backdrop-blur-sm"
+            aria-live="polite"
+          >
+            <AlertCircle className="h-12 w-12 text-destructive mb-4" />
+            <span className="text-lg font-medium">Error Loading Data</span>
+            <p className="text-muted-foreground mt-2 mb-4">{apiError}</p>
+            <Button onClick={fetchVarieties}>
+              <Undo2 className="mr-2 h-4 w-4" /> Try Again
+            </Button>
           </div>
         ) : (
           <Tabs value={viewMode} className="w-full">
@@ -419,7 +536,7 @@ export default function Dashboard() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
                 {currentItems.length > 0 ? (
                   currentItems.map((variety) => (
-                    <Card key={variety.id} className="dashboard-card group">
+                    <Card key={variety.id} className="dashboard-card group" tabIndex="0">
                       <div className="dashboard-card-header">
                         <div>
                           <h3 className="font-bold text-lg group-hover:text-primary transition-colors">
@@ -461,15 +578,36 @@ export default function Dashboard() {
                         </div>
                       </CardContent>
                       <CardFooter className="dashboard-card-footer">
-                        <Link to={`/manage/${variety.id}`} className="w-full mr-2">
-                          <Button variant="outline" size="sm" className="w-full">
-                            Edit
-                          </Button>
-                        </Link>
-                        <DeleteVarietyDialog
-                          varietyName={variety.varietyName}
-                          onDelete={() => handleDelete(variety.id)}
-                        />
+                        <div className="flex w-full gap-2">
+                          <Link to={`/manage/${variety.id}`} className="flex-1">
+                            <Button variant="outline" size="sm" className="w-full">
+                              Edit
+                            </Button>
+                          </Link>
+
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => copyVarietyInfo(variety)}
+                                  aria-label="Copy variety information"
+                                >
+                                  <Copy className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Copy variety info</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+
+                          <DeleteVarietyDialog
+                            varietyName={variety.varietyName}
+                            onDelete={() => handleDelete(variety.id)}
+                          />
+                        </div>
                       </CardFooter>
                     </Card>
                   ))
@@ -496,16 +634,30 @@ export default function Dashboard() {
             <TabsContent value="list" className="mt-0">
               <div className="bg-white/80 dark:bg-gray-800/80 rounded-xl border shadow-sm overflow-hidden backdrop-blur-sm">
                 <div className="overflow-x-auto">
-                  <table className="w-full">
+                  <table className="w-full" role="grid" aria-label="Crop varieties">
                     <thead>
                       <tr className="bg-muted/50">
-                        <th className="px-4 py-3 text-left text-sm font-medium">Variety</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium">Crop</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium">Health</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium">Yield</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium">Harvest Date</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
-                        <th className="px-4 py-3 text-right text-sm font-medium">Actions</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium" scope="col">
+                          Variety
+                        </th>
+                        <th className="px-4 py-3 text-left text-sm font-medium" scope="col">
+                          Crop
+                        </th>
+                        <th className="px-4 py-3 text-left text-sm font-medium" scope="col">
+                          Health
+                        </th>
+                        <th className="px-4 py-3 text-left text-sm font-medium" scope="col">
+                          Yield
+                        </th>
+                        <th className="px-4 py-3 text-left text-sm font-medium" scope="col">
+                          Harvest Date
+                        </th>
+                        <th className="px-4 py-3 text-left text-sm font-medium" scope="col">
+                          Status
+                        </th>
+                        <th className="px-4 py-3 text-right text-sm font-medium" scope="col">
+                          Actions
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
@@ -541,6 +693,25 @@ export default function Dashboard() {
                                     Edit
                                   </Button>
                                 </Link>
+
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => copyVarietyInfo(variety)}
+                                        aria-label="Copy variety information"
+                                      >
+                                        <Copy className="h-4 w-4" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Copy variety info</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+
                                 <DeleteVarietyDialog
                                   varietyName={variety.varietyName}
                                   onDelete={() => handleDelete(variety.id)}
@@ -575,12 +746,14 @@ export default function Dashboard() {
         )}
 
         {filteredVarieties.length > itemsPerPage && (
-          <Pagination className="mt-8">
+          <Pagination className="mt-8" aria-label="Pagination">
             <PaginationContent>
               <PaginationItem>
                 <PaginationPrevious
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
+                  className="hover:bg-muted/70 transition-colors"
+                  aria-label="Go to previous page"
                 />
               </PaginationItem>
 
@@ -599,7 +772,13 @@ export default function Dashboard() {
 
                 return (
                   <PaginationItem key={pageNum}>
-                    <PaginationLink isActive={currentPage === pageNum} onClick={() => setCurrentPage(pageNum)}>
+                    <PaginationLink
+                      isActive={currentPage === pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className="hover:bg-muted/70 transition-colors"
+                      aria-label={`Page ${pageNum}`}
+                      aria-current={currentPage === pageNum ? "page" : undefined}
+                    >
                       {pageNum}
                     </PaginationLink>
                   </PaginationItem>
@@ -610,6 +789,8 @@ export default function Dashboard() {
                 <PaginationNext
                   onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                   disabled={currentPage === totalPages}
+                  className="hover:bg-muted/70 transition-colors"
+                  aria-label="Go to next page"
                 />
               </PaginationItem>
             </PaginationContent>
