@@ -1,14 +1,27 @@
-"use client"
+"use client";
 
-import { format } from "date-fns"
-import { Sprout, Calendar, Thermometer, Loader2 } from "lucide-react"
-import { Button } from "../ui/button"
-import { Input } from "../ui/input"
-import { Label } from "../ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group"
-import { getCropIcons } from "./cropData"
+import { format } from "date-fns";
+import { Sprout, Calendar, Thermometer, Loader2 } from "lucide-react";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { getCropIcons } from "./cropData";
 
 export default function VarietyForm({
   isEditing,
@@ -21,8 +34,8 @@ export default function VarietyForm({
   submitting,
   navigate,
 }) {
-  const cropIcons = getCropIcons()
-  const cropOptions = Object.keys(cropIcons)
+  const cropIcons = getCropIcons();
+  const cropOptions = Object.keys(cropIcons);
 
   return (
     <Card className="form-card shadow-xl border-primary/10">
@@ -38,11 +51,14 @@ export default function VarietyForm({
         </CardDescription>
       </CardHeader>
 
-      <form onSubmit={handleSubmit} aria-label={isEditing ? "Edit variety form" : "Add variety form"}>
+      <form
+        onSubmit={handleSubmit}
+        aria-label={isEditing ? "Edit variety form" : "Add variety form"}
+      >
         <CardContent className="space-y-8 p-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="cropName" className="text-base">
+              <Label htmlFor="cropName" className="text-base font-medium">
                 Crop Name
               </Label>
               <Select
@@ -50,24 +66,49 @@ export default function VarietyForm({
                 onValueChange={(value) => handleSelectChange("cropName", value)}
                 name="cropName"
                 aria-invalid={!!errors.cropName}
-                aria-describedby={errors.cropName ? "cropName-error" : undefined}
+                aria-describedby={
+                  errors.cropName ? "cropName-error" : undefined
+                }
               >
-                <SelectTrigger id="cropName" className={`${errors.cropName ? "border-destructive" : ""} h-12`}>
-                  <SelectValue placeholder="Select crop" />
+                <SelectTrigger
+                  id="cropName"
+                  className={`${
+                    errors.cropName ? "border-destructive" : "border-gray-300"
+                  } h-12 bg-white shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-primary focus:border-primary`}
+                >
+                  <SelectValue
+                    placeholder="Select crop"
+                    className="text-gray-900"
+                  />
                 </SelectTrigger>
-                <SelectContent position="item-aligned">
+                <SelectContent
+                  position="item-aligned"
+                  className="bg-white border border-gray-200 shadow-lg"
+                >
                   {cropOptions.map((crop) => (
-                    <SelectItem key={crop} value={crop} className="flex items-center">
+                    <SelectItem
+                      key={crop}
+                      value={crop}
+                      className="flex items-center py-2 px-2 hover:bg-gray-100 focus:bg-gray-100 cursor-pointer"
+                    >
                       <div className="flex items-center">
-                        {cropIcons[crop]}
-                        <span className="ml-2">{crop}</span>
+                        <span className="text-primary-500">
+                          {cropIcons[crop]}
+                        </span>
+                        <span className="ml-2 text-gray-900 font-medium">
+                          {crop}
+                        </span>
                       </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               {errors.cropName && (
-                <p className="text-sm text-destructive" id="cropName-error" aria-live="polite">
+                <p
+                  className="text-sm text-destructive font-medium mt-1"
+                  id="cropName-error"
+                  aria-live="polite"
+                >
                   {errors.cropName}
                 </p>
               )}
@@ -82,12 +123,20 @@ export default function VarietyForm({
                 name="varietyName"
                 value={formData.varietyName}
                 onChange={handleChange}
-                className={`${errors.varietyName ? "border-destructive" : ""} h-12`}
+                className={`${
+                  errors.varietyName ? "border-destructive" : ""
+                } h-12`}
                 aria-invalid={!!errors.varietyName}
-                aria-describedby={errors.varietyName ? "varietyName-error" : undefined}
+                aria-describedby={
+                  errors.varietyName ? "varietyName-error" : undefined
+                }
               />
               {errors.varietyName && (
-                <p className="text-sm text-destructive" id="varietyName-error" aria-live="polite">
+                <p
+                  className="text-sm text-destructive"
+                  id="varietyName-error"
+                  aria-live="polite"
+                >
                   {errors.varietyName}
                 </p>
               )}
@@ -113,12 +162,20 @@ export default function VarietyForm({
                   step="0.1"
                   value={formData.expectedYield}
                   onChange={handleChange}
-                  className={`${errors.expectedYield ? "border-destructive" : ""} h-12`}
+                  className={`${
+                    errors.expectedYield ? "border-destructive" : ""
+                  } h-12`}
                   aria-invalid={!!errors.expectedYield}
-                  aria-describedby={errors.expectedYield ? "expectedYield-error" : undefined}
+                  aria-describedby={
+                    errors.expectedYield ? "expectedYield-error" : undefined
+                  }
                 />
                 {errors.expectedYield && (
-                  <p className="text-sm text-destructive" id="expectedYield-error" aria-live="polite">
+                  <p
+                    className="text-sm text-destructive"
+                    id="expectedYield-error"
+                    aria-live="polite"
+                  >
                     {errors.expectedYield}
                   </p>
                 )}
@@ -132,14 +189,23 @@ export default function VarietyForm({
                   <RadioGroup
                     id="healthRating"
                     value={formData.healthRating.toString()}
-                    onValueChange={(value) => handleSelectChange("healthRating", value)}
+                    onValueChange={(value) =>
+                      handleSelectChange("healthRating", value)
+                    }
                     className="flex space-x-4"
                     aria-label="Health rating from 1 to 5 stars"
                   >
                     {[1, 2, 3, 4, 5].map((rating) => (
                       <div key={rating} className="flex items-center space-x-1">
-                        <RadioGroupItem value={rating.toString()} id={`rating-${rating}`} className="sr-only" />
-                        <Label htmlFor={`rating-${rating}`} className="flex items-center cursor-pointer">
+                        <RadioGroupItem
+                          value={rating.toString()}
+                          id={`rating-${rating}`}
+                          className="sr-only"
+                        />
+                        <Label
+                          htmlFor={`rating-${rating}`}
+                          className="flex items-center cursor-pointer"
+                        >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
                             viewBox="0 0 24 24"
@@ -182,12 +248,20 @@ export default function VarietyForm({
                   type="date"
                   value={formData.sowingDate}
                   onChange={handleChange}
-                  className={`${errors.sowingDate ? "border-destructive" : ""} h-12`}
+                  className={`${
+                    errors.sowingDate ? "border-destructive" : ""
+                  } h-12`}
                   aria-invalid={!!errors.sowingDate}
-                  aria-describedby={errors.sowingDate ? "sowingDate-error" : undefined}
+                  aria-describedby={
+                    errors.sowingDate ? "sowingDate-error" : undefined
+                  }
                 />
                 {errors.sowingDate && (
-                  <p className="text-sm text-destructive" id="sowingDate-error" aria-live="polite">
+                  <p
+                    className="text-sm text-destructive"
+                    id="sowingDate-error"
+                    aria-live="polite"
+                  >
                     {errors.sowingDate}
                   </p>
                 )}
@@ -204,12 +278,22 @@ export default function VarietyForm({
                   min="1"
                   value={formData.expectedHarvestDays}
                   onChange={handleChange}
-                  className={`${errors.expectedHarvestDays ? "border-destructive" : ""} h-12`}
+                  className={`${
+                    errors.expectedHarvestDays ? "border-destructive" : ""
+                  } h-12`}
                   aria-invalid={!!errors.expectedHarvestDays}
-                  aria-describedby={errors.expectedHarvestDays ? "expectedHarvestDays-error" : undefined}
+                  aria-describedby={
+                    errors.expectedHarvestDays
+                      ? "expectedHarvestDays-error"
+                      : undefined
+                  }
                 />
                 {errors.expectedHarvestDays && (
-                  <p className="text-sm text-destructive" id="expectedHarvestDays-error" aria-live="polite">
+                  <p
+                    className="text-sm text-destructive"
+                    id="expectedHarvestDays-error"
+                    aria-live="polite"
+                  >
                     {errors.expectedHarvestDays}
                   </p>
                 )}
@@ -225,15 +309,19 @@ export default function VarietyForm({
                 </div>
                 <div>
                   <p className="text-lg font-medium">Estimated Harvest Date</p>
-                  <p className="text-muted-foreground">Based on sowing date and expected growth period</p>
+                  <p className="text-muted-foreground">
+                    Based on sowing date and expected growth period
+                  </p>
                 </div>
               </div>
               <div className="text-right bg-white/80 dark:bg-gray-800/80 px-4 py-2 rounded-lg border shadow-sm backdrop-blur-sm">
                 <p className="text-xl font-bold text-primary">
-                  {estimatedHarvestDate && format(new Date(estimatedHarvestDate), "MMMM d, yyyy")}
+                  {estimatedHarvestDate &&
+                    format(new Date(estimatedHarvestDate), "MMMM d, yyyy")}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {estimatedHarvestDate && `${formData.expectedHarvestDays} days after planting`}
+                  {estimatedHarvestDate &&
+                    `${formData.expectedHarvestDays} days after planting`}
                 </p>
               </div>
             </div>
@@ -263,5 +351,5 @@ export default function VarietyForm({
         </CardFooter>
       </form>
     </Card>
-  )
+  );
 }
