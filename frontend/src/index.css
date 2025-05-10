@@ -345,3 +345,8 @@ a[role="button"]:active {
 .slider-thumb:active {
   transform: scale(1.05);
 }
+
+.my-green-slider .bg-primary {
+  background-color: green; 
+}
+
