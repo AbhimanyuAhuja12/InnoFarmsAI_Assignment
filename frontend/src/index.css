@@ -1,67 +1,70 @@
-@import "tailwindcss";
+/* Import Tailwind */
+@import 'tailwindcss';
 
+/* Theme configuration */
 :root {
-  --background: 60deg 33% 98%;
-  --foreground: 124deg 10% 10%;
+  --background: 60 33% 98%;
+  --foreground: 124 10% 10%;
 
-  --card: 0deg 0% 100%;
-  --card-foreground: 124deg 10% 10%;
+  --card: 0 0% 100%;
+  --card-foreground: 124 10% 10%;
 
-  --popover: 0deg 0% 100%;
-  --popover-foreground: 124deg 10% 10%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 124 10% 10%;
 
-  --primary: 142deg 76% 36%;
-  --primary-foreground: 356deg 100% 97%;
+  --primary: 142 76% 36%;
+  --primary-foreground: 355.7 100% 97.3%;
 
-  --secondary: 84deg 59% 95%;
-  --secondary-foreground: 84deg 30% 25%;
+  --secondary: 84 59% 95%;
+  --secondary-foreground: 84 30% 25%;
 
-  --muted: 60deg 10% 96%;
-  --muted-foreground: 124deg 5% 45%;
+  --muted: 60 10% 96%;
+  --muted-foreground: 124 5% 45%;
 
-  --accent: 84deg 59% 95%;
-  --accent-foreground: 84deg 30% 25%;
+  --accent: 84 59% 95%;
+  --accent-foreground: 84 30% 25%;
 
-  --destructive: 0deg 84% 60%;
-  --destructive-foreground: 210deg 20% 98%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 20% 98%;
 
-  --border: 124deg 5% 90%;
-  --input: 124deg 5% 90%;
-  --ring: 142deg 76% 36%;
+  --border: 124 5% 90%;
+  --input: 124 5% 90%;
+  --ring: 142.1 76.2% 36.3%;
 
   --radius: 0.75rem;
 }
 
 .dark {
-  --background: 124deg 15% 8%;
-  --foreground: 60deg 10% 98%;
+  --background: 124 15% 8%;
+  --foreground: 60 10% 98%;
 
-  --card: 124deg 10% 12%;
-  --card-foreground: 60deg 10% 98%;
+  --card: 124 10% 12%;
+  --card-foreground: 60 10% 98%;
 
-  --popover: 124deg 10% 12%;
-  --popover-foreground: 60deg 10% 98%;
+  --popover: 124 10% 12%;
+  --popover-foreground: 60 10% 98%;
 
-  --primary: 142deg 70% 45%;
-  --primary-foreground: 145deg 80% 10%;
+  --primary: 142 70% 45%;
+  --primary-foreground: 144.9 80.4% 10%;
 
-  --secondary: 84deg 30% 15%;
-  --secondary-foreground: 84deg 59% 90%;
+  --secondary: 84 30% 15%;
+  --secondary-foreground: 84 59% 90%;
 
-  --muted: 124deg 10% 15%;
-  --muted-foreground: 124deg 5% 65%;
+  --muted: 124 10% 15%;
+  --muted-foreground: 124 5% 65%;
 
-  --accent: 84deg 30% 15%;
-  --accent-foreground: 84deg 59% 90%;
+  --accent: 84 30% 15%;
+  --accent-foreground: 84 59% 90%;
 
-  --destructive: 0deg 63% 31%;
-  --destructive-foreground: 210deg 40% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
 
-  --border: 124deg 10% 20%;
-  --input: 124deg 10% 20%;
-  --ring: 142deg 72% 29%;
+  --border: 124 10% 20%;
+  --input: 124 10% 20%;
+  --ring: 142.4 71.8% 29.2%;
 }
 
+/* Base styles */
 * {
   border-color: hsl(var(--border));
 }
@@ -127,7 +130,36 @@ body {
   animation: grow 8s ease-in-out infinite;
 }
 
-/* Utility classes */
+/* Enhanced button styles */
+button,
+.button,
+[role="button"],
+a.button,
+a[role="button"] {
+  cursor: pointer;
+  transition-property: all;
+  transition-duration: 200ms;
+}
+
+button:hover,
+.button:hover,, 
+[role="button"]:hover,
+a.button:hover,
+a[role="button"]:hover {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  transform: translateY(-0.125rem);
+}
+
+button:active,
+.button:active,
+[role="button"]:active,
+a.button:active,
+a[role="button"]:active {
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  transform: translateY(0);
+}
+
+/* Component styles */
 .leaf-bullet li::before {
   content: "🌿";
   display: inline-block;
@@ -142,7 +174,16 @@ body {
   background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%239C92AC' fill-opacity='0.1' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E");
 }
 
-/* Dashboard cards */
+.card-hover {
+  transition-property: all;
+  transition-duration: 300ms;
+}
+
+.card-hover:hover {
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  transform: translateY(-0.25rem);
+}
+
 .dashboard-card {
   overflow: hidden;
   border-radius: 0.75rem;
@@ -152,16 +193,18 @@ body {
   box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   transition-property: all;
   transition-duration: 300ms;
-  background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
 }
 
 .dashboard-card:hover {
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  transform: translateY(-0.25rem);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
 
 .dark .dashboard-card {
   border-color: rgb(55 65 81);
+}
+
+.dashboard-card {
+  background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
 }
 
 .dashboard-card-header {
@@ -199,7 +242,6 @@ body {
   background-color: hsl(var(--muted) / 0.2);
 }
 
-/* Other components */
 .form-card {
   max-width: 42rem;
   margin-left: auto;
@@ -236,9 +278,9 @@ body {
   overflow: hidden;
   border-radius: 0.75rem;
   padding: 1.5rem;
-  background-image: linear-gradient(to right, hsl(var(--primary) / 0.2), hsl(var(--secondary) / 0.3));
   border-width: 1px;
   box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  background-image: linear-gradient(to right, hsl(var(--primary) / 0.2), hsl(var(--secondary) / 0.3));
 }
 
 @media (min-width: 768px) {
@@ -261,4 +303,45 @@ body {
 .page-header > * {
   position: relative;
   z-index: 1;
+}
+
+/* Enhanced slider styles */
+.slider-track {
+  height: 0.5rem;
+  border-radius: 9999px;
+  background-color: hsl(var(--muted));
+  position: relative;
+  overflow: hidden;
+}
+
+.slider-track-highlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background-image: linear-gradient(to right, hsl(var(--primary) / 0.7), hsl(var(--primary)));
+  width: var(--highlight-width, 0%);
+}
+
+.slider-thumb {
+  height: 1.25rem;
+  width: 1.25rem;
+  border-radius: 9999px;
+  background-color: hsl(var(--primary));
+  border-width: 2px;
+  border-color: white;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  cursor: pointer;
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+.slider-thumb:active {
+  transform: scale(1.05);
 }
