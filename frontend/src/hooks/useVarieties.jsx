@@ -13,6 +13,7 @@ export const useVarieties = (toast) => {
   const [sortOption, setSortOption] = useState("")
   const [deletedVariety, setDeletedVariety] = useState(null)
   const [apiError, setApiError] = useState(null)
+  
 
   // Set to 10 varieties per page as requested
   const itemsPerPage = 10
@@ -29,7 +30,7 @@ export const useVarieties = (toast) => {
     try {
       setLoading(true)
       setApiError(null)
-      const response = await axios.get("http://localhost:5000/api/varieties")
+      const response = await axios.get("https://innofarmsai-assignment.onrender.com/api/varieties")
       setVarieties(response.data)
       setFilteredVarieties(response.data)
     } catch (error) {
@@ -98,7 +99,7 @@ export const useVarieties = (toast) => {
       const updatedVarieties = varieties.filter((variety) => variety.id !== id)
       setVarieties(updatedVarieties)
 
-      await axios.delete(`http://localhost:5000/api/varieties/${id}`)
+      await axios.delete(`https://innofarmsai-assignment.onrender.com/api/varieties/${id}`)
 
       // Store deleted variety for undo functionality
       setDeletedVariety(varietyToDelete)
@@ -133,7 +134,7 @@ export const useVarieties = (toast) => {
   const handleUndoDelete = async (variety) => {
     try {
       setLoading(true)
-      await axios.post("http://localhost:5000/api/varieties", variety)
+      await axios.post("https://innofarmsai-assignment.onrender.com/api/varieties", variety)
 
       // Refresh varieties
       await fetchVarieties()

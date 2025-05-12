@@ -5,6 +5,7 @@ import axios from "axios"
 import { format, addDays } from "date-fns"
 import { useToast } from "../components/ui/use-toast"
 
+
 export const useManageVariety = (id, navigate, isEditing) => {
   const { toast } = useToast()
 
@@ -34,7 +35,7 @@ export const useManageVariety = (id, navigate, isEditing) => {
     try {
       setLoading(true)
       setApiError(null)
-      const response = await axios.get(`http://localhost:5000/api/varieties/${id}`)
+      const response = await axios.get(`https://innofarmsai-assignment.onrender.com/api/varieties/${id}`)
       const variety = response.data
 
       setFormData({
@@ -156,13 +157,13 @@ export const useManageVariety = (id, navigate, isEditing) => {
       }
 
       if (isEditing) {
-        await axios.patch(`http://localhost:5000/api/varieties/${id}`, varietyData)
+        await axios.patch(`https://innofarmsai-assignment.onrender.com/api/varieties/${id}`, varietyData)
         toast({
           title: "Variety Updated",
           description: "The crop variety has been successfully updated.",
         })
       } else {
-        await axios.post("http://localhost:5000/api/varieties", varietyData)
+        await axios.post("https://innofarmsai-assignment.onrender.com/api/varieties", varietyData)
         toast({
           title: "Variety Added",
           description: "The new crop variety has been successfully added.",
